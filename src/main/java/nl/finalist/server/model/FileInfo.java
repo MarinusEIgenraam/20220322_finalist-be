@@ -7,6 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class FileInfo {
 
+
     private String fileName;
     private String fileLocation;
 
