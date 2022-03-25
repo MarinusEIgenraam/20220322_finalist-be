@@ -47,7 +47,6 @@ class RestApi extends RouteBuilder {
                 .bindingMode(RestBindingMode.auto)
                 .type(Message.class)
                 .enableCORS(true)
-
                 .to("direct:remoteService");
 
         from("direct:remoteService")

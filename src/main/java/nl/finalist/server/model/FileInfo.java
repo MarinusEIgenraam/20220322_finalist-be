@@ -1,8 +1,11 @@
 package nl.finalist.server.model;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.lang.Nullable;
+
 import javax.persistence.*;
 import java.time.Instant;
 
@@ -10,6 +13,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Builder
 @Table(name="files")
 public class FileInfo {
 
@@ -20,8 +24,8 @@ public class FileInfo {
     private String fileName;
     private String fileLocation;
 
-    private Instant createdAt;
-    private Instant modifiedAt;
+    private String createdAt;
+    private Long modifiedAt;
 
     @ManyToOne
     Project project;
