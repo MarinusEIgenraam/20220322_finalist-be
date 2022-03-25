@@ -57,9 +57,15 @@ class RestApi extends RouteBuilder {
                 .to("bean:fileInfoService?method=findAllByProject(${header.id})");
 
         rest("/api/").description("Files REST Service")
+                .id("get-files")
+                .get("/files").outType(Iterable.class)
+                .to("bean:fileInfoService?method=findAll");
+
+        rest("/api/").description("Files REST Service")
                 .id("api-route")
                 .get("/files/{id}")
                 .to("bean:fileInfoService?method=findById(${header.id})");
+
 
         from("direct:remoteService")
                 .routeId("direct-route")
