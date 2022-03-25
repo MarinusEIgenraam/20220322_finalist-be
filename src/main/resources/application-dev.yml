@@ -1,5 +1,0 @@
-camel:
-  component:
-    servlet:
-      mapping:
-        contextPath: /javadevjournal/*

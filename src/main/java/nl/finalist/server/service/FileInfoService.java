@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
+
 @Service
 public class FileInfoService {
 
@@ -18,11 +19,11 @@ public class FileInfoService {
     private final Path root = Paths.get("uploads");
 
     public FileInfo findById(Long id) {
-        Optional<FileInfo> product = fileInfoRepository.findById(id);
-        if (!product.isPresent()) {
-            throw new IllegalStateException("Product could not found for given id:" + id);
+        Optional<FileInfo> fileInfo = fileInfoRepository.findById(id);
+        if (!fileInfo.isPresent()) {
+            throw new IllegalStateException("File could not found for given id:" + id);
         }
-        return product.get();
+        return fileInfo.get();
     }
 
     public Iterable <FileInfo> findAll() {

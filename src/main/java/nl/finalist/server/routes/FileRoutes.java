@@ -1,6 +1,10 @@
 package nl.finalist.server.routes;
 
+
+import nl.finalist.server.model.Message;
+import nl.finalist.server.service.MessageServices;
 import org.apache.camel.Exchange;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.springframework.stereotype.Component;
 
