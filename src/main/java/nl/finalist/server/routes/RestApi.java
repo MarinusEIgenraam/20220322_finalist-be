@@ -1,6 +1,7 @@
 package nl.finalist.server.routes;
 
 import nl.finalist.server.model.Message;
+import nl.finalist.server.service.FileInfoService;
 import nl.finalist.server.service.MessageServices;
 import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
@@ -12,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.MediaType;
+import java.util.List;
 
 @Component
 class RestApi extends RouteBuilder {
@@ -48,6 +50,16 @@ class RestApi extends RouteBuilder {
                 .type(Message.class)
                 .enableCORS(true)
                 .to("direct:remoteService");
+
+        rest("/api/").description("Project files REST Service")
+                .id("api-route")
+                .get("/projects/{id}")
+                .to("bean:fileInfoService?method=findAllByProject(${header.id})");
+
+        rest("/api/").description("Files REST Service")
+                .id("api-route")
+                .get("/files/{id}")
+                .to("bean:fileInfoService?method=findById(${header.id})");
 
         from("direct:remoteService")
                 .routeId("direct-route")
