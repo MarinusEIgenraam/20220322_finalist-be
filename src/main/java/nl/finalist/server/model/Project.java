@@ -1,5 +1,6 @@
 package nl.finalist.server.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -30,4 +32,8 @@ public class Project {
     private LocalDateTime createdAt;
     @Nullable
     private LocalDateTime modifiedAt;
+
+    @OneToMany
+    @JsonManagedReference("projectFiles")
+    private List<FileInfo> fileInfos;
 }

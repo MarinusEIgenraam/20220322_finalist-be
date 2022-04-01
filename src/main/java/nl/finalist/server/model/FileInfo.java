@@ -1,5 +1,6 @@
 package nl.finalist.server.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,8 +8,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
-import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -16,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 @Builder
-@Table(name="files")
+@Table(name = "files")
 public class FileInfo {
 
     @Id
@@ -34,5 +33,6 @@ public class FileInfo {
     private LocalDateTime modifiedAt;
 
     @ManyToOne
-    Project project;
+    @JsonBackReference("projectFiles")
+    private Project project;
 }

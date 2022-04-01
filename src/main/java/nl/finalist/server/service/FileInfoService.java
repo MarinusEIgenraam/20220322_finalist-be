@@ -38,12 +38,13 @@ public class FileInfoService {
         return fileInfo.get();
     }
 
-    public List<FileInfo> findAllByProject(Long id) {
+    public List<FileInfoOutput> findAllByProject(Long id) {
         Optional<Project> optionalProject = projectRepository.findById(id);
         if (optionalProject.isEmpty()) {
             throw new IllegalStateException("File could not found for given id:" + id);
         } else {
-            return fileInfoRepository.findAllByProject(optionalProject.get());
+            List<FileInfo> fileInfos =  fileInfoRepository.findAllByProject(optionalProject.get());
+            return fileInfos.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
         }
     }
 
