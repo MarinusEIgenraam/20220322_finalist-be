@@ -1,5 +1,6 @@
 package nl.finalist.server.model.DTO;
 
+import com.sun.istack.Nullable;
 import nl.finalist.server.model.Project;
 
 import java.time.LocalDateTime;
@@ -11,6 +12,7 @@ public class ProjectOutput {
     public String name;
     public String owner;
     public String createdAt;
+    @Nullable
     public List<FileInfoOutput> fileInfos;
 
     public static ProjectOutput fromProject(Project project) {

@@ -51,10 +51,10 @@ class RestApi extends RouteBuilder {
                 .enableCORS(true)
                 .to("direct:remoteService");
 
-        rest("/api/").description("Project files REST Service")
+        rest("/api/").description("Project REST Service")
                 .id("api-route")
                 .get("/projects/{id}")
-                .to("bean:fileInfoService?method=findAllByProject(${header.id})");
+                .to("bean:projectService?method=getProject(${header.id})");
 
         rest("/api/").description("Files REST Service")
                 .id("get-files")
