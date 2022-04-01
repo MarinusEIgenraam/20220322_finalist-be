@@ -41,7 +41,6 @@ public class FileRoutes extends RouteBuilder {
                                 .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
                                 .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath").toString().replace(exchange.getIn().getHeader("CamelFileNameOnly").toString(), ""))
                                 .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
-                                .modifiedAt((Long) exchange.getIn().getHeader("CamelFileLastModified"))
                                 .build();
 
                         fileInfoService.save(fileInfoInput);

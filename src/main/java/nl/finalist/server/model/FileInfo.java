@@ -8,6 +8,8 @@ import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -27,8 +29,9 @@ public class FileInfo {
 
     private String lastEvent;
 
-    private String createdAt;
-    private Long modifiedAt;
+    private LocalDateTime createdAt;
+    @Nullable
+    private LocalDateTime modifiedAt;
 
     @ManyToOne
     Project project;

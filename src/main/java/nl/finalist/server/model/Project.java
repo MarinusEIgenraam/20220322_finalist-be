@@ -4,10 +4,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import org.joda.time.DateTime;
+import org.springframework.lang.Nullable;
+
+import javax.persistence.*;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -18,10 +21,13 @@ import java.time.Instant;
 public class Project {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     private String name;
     private String owner;
 
-    private Instant createdAt;
+    private LocalDateTime createdAt;
+    @Nullable
+    private LocalDateTime modifiedAt;
 }

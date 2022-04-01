@@ -1,6 +1,7 @@
 package nl.finalist.server.service;
 
 import nl.finalist.server.model.DTO.FileInfoInput;
+import nl.finalist.server.model.DTO.FileInfoOutput;
 import nl.finalist.server.model.FileInfo;
 import nl.finalist.server.model.Message;
 import nl.finalist.server.model.Project;
@@ -11,8 +12,10 @@ import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -44,8 +47,9 @@ public class FileInfoService {
         }
     }
 
-    public Iterable <FileInfo> findAll() {
-        return fileInfoRepository.findAll();
+    public List <FileInfoOutput> findAll() {
+        List<FileInfo> files = (List<FileInfo>) fileInfoRepository.findAll();
+        return files.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
     }
 
     public void save(FileInfoInput fileInfoInput) {
@@ -57,6 +61,8 @@ public class FileInfoService {
         } else {
             String name = fileInfoInput.fileLocation.split("/")[0];
             fileInfo.setProject(projectService.saveProject(name));
+            fileInfo.setCreatedAt(LocalDateTime.now());
+
         }
         fileInfoRepository.save(fileInfo);
     }
