@@ -1,7 +1,9 @@
 package nl.finalist.server.model.DTO;
 
+import lombok.Builder;
 import nl.finalist.server.model.FileInfo;
 
+@Builder
 public class FileInfoInput {
     public Long id;
     public String fileName;

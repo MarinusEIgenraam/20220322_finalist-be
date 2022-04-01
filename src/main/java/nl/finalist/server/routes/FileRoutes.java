@@ -1,6 +1,7 @@
 package nl.finalist.server.routes;
 
 
+import nl.finalist.server.model.DTO.FileInfoInput;
 import nl.finalist.server.model.FileInfo;
 import nl.finalist.server.model.Message;
 import nl.finalist.server.service.FileInfoService;
@@ -36,17 +37,17 @@ public class FileRoutes extends RouteBuilder {
                     @Override
                     public void process(Exchange exchange) throws Exception {
 
-                        FileInfo fileInfo = FileInfo.builder()
+                        FileInfoInput fileInfoInput = FileInfoInput.builder()
                                 .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
                                 .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath").toString().replace(exchange.getIn().getHeader("CamelFileNameOnly").toString(), ""))
                                 .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
                                 .modifiedAt((Long) exchange.getIn().getHeader("CamelFileLastModified"))
                                 .build();
 
-                        fileInfoService.save(fileInfo);
+                        fileInfoService.save(fileInfoInput);
 
                         exchange.getIn()
-                                .setBody(fileInfo);
+                                .setBody(fileInfoInput.toFileInfo());
                     }
                 })
                 .log("File id: ${exchange.getIn().getBody().getId()}");

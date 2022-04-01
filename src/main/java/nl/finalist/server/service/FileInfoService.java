@@ -1,5 +1,6 @@
 package nl.finalist.server.service;
 
+import nl.finalist.server.model.DTO.FileInfoInput;
 import nl.finalist.server.model.FileInfo;
 import nl.finalist.server.model.Message;
 import nl.finalist.server.model.Project;
@@ -21,6 +22,8 @@ public class FileInfoService {
     FileInfoRepository fileInfoRepository;
     @Autowired
     ProjectRepository projectRepository;
+    @Autowired
+    ProjectService projectService;
 
     private final Path root = Paths.get("uploads");
 
@@ -45,8 +48,16 @@ public class FileInfoService {
         return fileInfoRepository.findAll();
     }
 
-    public void save(FileInfo fileInfo) {
-
+    public void save(FileInfoInput fileInfoInput) {
+        FileInfo fileInfo = fileInfoInput.toFileInfo();
+        Optional<Project> optionalProject = projectRepository.findByName(fileInfoInput.projectName);
+        if (optionalProject.isPresent()) {
+            Project project = optionalProject.get();
+            fileInfo.setProject(optionalProject.get());
+        } else {
+            String name = fileInfoInput.fileLocation.split("/")[0];
+            fileInfo.setProject(projectService.saveProject(name));
+        }
         fileInfoRepository.save(fileInfo);
     }
 
