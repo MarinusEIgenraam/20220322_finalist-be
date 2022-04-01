@@ -41,7 +41,7 @@ public class FileInfoService {
     public List<FileInfoOutput> findAllByProject(Long id) {
         Optional<Project> optionalProject = projectRepository.findById(id);
         if (optionalProject.isEmpty()) {
-            throw new IllegalStateException("File could not found for given id:" + id);
+            throw new IllegalStateException("There is no project with id: " + id);
         } else {
             List<FileInfo> fileInfos =  fileInfoRepository.findAllByProject(optionalProject.get());
             return fileInfos.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
@@ -55,15 +55,15 @@ public class FileInfoService {
 
     public void save(FileInfoInput fileInfoInput) {
         FileInfo fileInfo = fileInfoInput.toFileInfo();
-        Optional<Project> optionalProject = projectRepository.findByName(fileInfoInput.projectName);
+        String name = fileInfoInput.fileLocation.split("/")[0];
+        var optionalProject = projectRepository.findByName(name);
         if (optionalProject.isPresent()) {
             Project project = optionalProject.get();
             fileInfo.setProject(optionalProject.get());
+            project.setModifiedAt(LocalDateTime.now());
+            projectRepository.save(project);
         } else {
-            String name = fileInfoInput.fileLocation.split("/")[0];
             fileInfo.setProject(projectService.saveProject(name));
-            fileInfo.setCreatedAt(LocalDateTime.now());
-
         }
         fileInfoRepository.save(fileInfo);
     }

@@ -28,7 +28,7 @@ public class FileInfo {
 
     private String lastEvent;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     @Nullable
     private LocalDateTime modifiedAt;
 

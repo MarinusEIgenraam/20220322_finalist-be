@@ -29,7 +29,7 @@ public class Project {
     private String name;
     private String owner;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
     @Nullable
     private LocalDateTime modifiedAt;
 

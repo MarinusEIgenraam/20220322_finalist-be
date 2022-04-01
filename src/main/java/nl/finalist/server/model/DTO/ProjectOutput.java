@@ -13,6 +13,7 @@ public class ProjectOutput {
     public String owner;
     public String createdAt;
     @Nullable
+    public String modifiedAt;
     public List<FileInfoOutput> fileInfos;
 
     public static ProjectOutput fromProject(Project project) {
@@ -21,6 +22,7 @@ public class ProjectOutput {
         dto.id = project.getId();
         dto.name = project.getName();
         dto.owner = project.getOwner();
+        dto.modifiedAt = project.getModifiedAt().toString();
         dto.createdAt = project.getCreatedAt().toString();
         dto.fileInfos = project.getFileInfos().stream().map(f -> FileInfoOutput.fromFileInfo(f)).collect(Collectors.toList());
 

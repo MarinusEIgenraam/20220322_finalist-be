@@ -2,6 +2,7 @@ package nl.finalist.server.model.DTO;
 
 import lombok.Builder;
 import nl.finalist.server.model.FileInfo;
+import org.springframework.lang.Nullable;
 
 public class FileInfoOutput {
     public Long id;
@@ -9,6 +10,7 @@ public class FileInfoOutput {
     public String fileLocation;
     public String lastEvent;
     public String createdAt;
+    @Nullable
     public String modifiedAt;
     public String projectName;
 
