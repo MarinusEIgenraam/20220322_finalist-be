@@ -22,7 +22,7 @@ public class ProjectOutput {
         dto.id = project.getId();
         dto.name = project.getName();
         dto.owner = project.getOwner();
-        dto.modifiedAt = project.getModifiedAt().toString();
+        dto.modifiedAt = project.getModifiedAt() != null ? project.getModifiedAt().toString() : null;
         dto.createdAt = project.getCreatedAt().toString();
         dto.fileInfos = project.getFileInfos().stream().map(f -> FileInfoOutput.fromFileInfo(f)).collect(Collectors.toList());
 

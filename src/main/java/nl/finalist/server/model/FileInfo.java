@@ -1,6 +1,7 @@
 package nl.finalist.server.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import org.springframework.lang.Nullable;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -35,4 +37,14 @@ public class FileInfo {
     @ManyToOne
     @JsonBackReference("projectFiles")
     private Project project;
+
+    @Nullable
+    @ManyToOne
+    @JsonBackReference("folderFiles")
+    private FileInfo parentFolder;
+
+    @Nullable
+    @OneToMany(mappedBy = "parentFolder", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("folderFiles")
+    private List<FileInfo> fileList;
 }

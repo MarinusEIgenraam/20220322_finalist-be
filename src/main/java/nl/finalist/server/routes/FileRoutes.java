@@ -39,7 +39,7 @@ public class FileRoutes extends RouteBuilder {
 
                         FileInfoInput fileInfoInput = FileInfoInput.builder()
                                 .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
-                                .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath").toString().replace(exchange.getIn().getHeader("CamelFileNameOnly").toString(), ""))
+                                .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath"))
                                 .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
                                 .build();
 

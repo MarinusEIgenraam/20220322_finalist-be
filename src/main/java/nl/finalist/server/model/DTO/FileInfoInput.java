@@ -12,6 +12,7 @@ public class FileInfoInput {
     public String fileLocation;
     public String lastEvent;
     public String projectName;
+    public String parentFolder;
 
     public FileInfo toFileInfo() {
         var fileInfo = new FileInfo();

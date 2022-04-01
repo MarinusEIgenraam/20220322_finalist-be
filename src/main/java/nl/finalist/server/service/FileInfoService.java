@@ -30,12 +30,12 @@ public class FileInfoService {
 
     private final Path root = Paths.get("uploads");
 
-    public FileInfo findById(Long id) {
+    public FileInfoOutput findById(Long id) {
         Optional<FileInfo> fileInfo = fileInfoRepository.findById(id);
         if (fileInfo.isEmpty()) {
             throw new IllegalStateException("File could not found for given id:" + id);
         }
-        return fileInfo.get();
+        return FileInfoOutput.fromFileInfo(fileInfo.get());
     }
 
     public List<FileInfoOutput> findAllByProject(Long id) {
@@ -53,23 +53,45 @@ public class FileInfoService {
         return files.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
     }
 
-    public void save(FileInfoInput fileInfoInput) {
-        FileInfo fileInfo = fileInfoInput.toFileInfo();
-        String name = fileInfoInput.fileLocation.split("/")[0];
-        var optionalProject = projectRepository.findByName(name);
-        if (optionalProject.isPresent()) {
-            Project project = optionalProject.get();
-            fileInfo.setProject(optionalProject.get());
-            project.setModifiedAt(LocalDateTime.now());
-            projectRepository.save(project);
-        } else {
-            fileInfo.setProject(projectService.saveProject(name));
-        }
-        fileInfoRepository.save(fileInfo);
-    }
 
     public static void example(Message bodyIn) {
         bodyIn.setName( "Hello, " + bodyIn.getName() );
         bodyIn.setId(bodyIn.getId()*10);
     }
+
+    public void save(FileInfoInput fileInfoInput) {
+        FileInfo fileInfo = fileInfoInput.toFileInfo();
+        String name = new String("");
+        String parentName = new String("");
+        if (fileInfoInput.fileLocation.split("/").length >= 2) {
+            parentName = fileInfoInput.fileLocation.split("/")[fileInfoInput.fileLocation.split("/").length - 2];
+        }
+
+        if (fileInfoInput.fileLocation.equals("")) {
+            name = fileInfoInput.fileName;
+        } else {
+            name = fileInfoInput.fileLocation.split("/")[0];
+        }
+        Optional<Project> optionalProject = projectRepository.findByName(name);
+        Optional<FileInfo> optionalFileInfo = fileInfoRepository.findByFileName(parentName);
+
+        if (optionalProject.isPresent()) {
+            Project project = optionalProject.get();
+            fileInfo.setProject(optionalProject.get());
+            project.getFileInfos().add(fileInfo);
+            project.setModifiedAt(LocalDateTime.now());
+            projectRepository.save(project);
+        } else {
+            fileInfo.setProject(projectService.saveProject(name));
+        }
+        if (optionalFileInfo.isPresent()) {
+            FileInfo parentInfo = optionalFileInfo.get();
+            fileInfo.setParentFolder(parentInfo);
+            FileInfo child = fileInfoRepository.save(fileInfo);
+            fileInfoRepository.save(fileInfo);
+        } else {
+            fileInfoRepository.save(fileInfo);
+        }
+    }
 }
+
