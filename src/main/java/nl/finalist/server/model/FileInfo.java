@@ -22,7 +22,10 @@ public class FileInfo {
     private Long id;
 
     private String fileName;
+
     private String fileLocation;
+
+    private String lastEvent;
 
     private String createdAt;
     private Long modifiedAt;

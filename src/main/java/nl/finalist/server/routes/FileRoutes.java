@@ -37,10 +37,12 @@ public class FileRoutes extends RouteBuilder {
                     public void process(Exchange exchange) throws Exception {
 
                         FileInfo fileInfo = FileInfo.builder()
-                                .fileName((String) exchange.getIn().getHeader("CamelFileName"))
-                                .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath"))
+                                .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
+                                .fileLocation((String) exchange.getIn().getHeader("CamelFileRelativePath").toString().replace(exchange.getIn().getHeader("CamelFileNameOnly").toString(), ""))
+                                .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
                                 .modifiedAt((Long) exchange.getIn().getHeader("CamelFileLastModified"))
                                 .build();
+
                         fileInfoService.save(fileInfo);
 
                         exchange.getIn()

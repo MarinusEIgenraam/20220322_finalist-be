@@ -41,7 +41,7 @@ class RestApi extends RouteBuilder {
                 .bindingMode(RestBindingMode.json)
                 .dataFormatProperty("prettyPrint", "true");
 
-        rest("/api/").description("Teste REST Service")
+        rest("/api/").description("Test REST Service")
                 .id("api-route")
                 .post("/message")
                 .produces(MediaType.APPLICATION_JSON)

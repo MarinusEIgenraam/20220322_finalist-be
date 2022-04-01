@@ -46,8 +46,10 @@ public class FileInfoService {
     }
 
     public void save(FileInfo fileInfo) {
+
         fileInfoRepository.save(fileInfo);
     }
+
     public static void example(Message bodyIn) {
         bodyIn.setName( "Hello, " + bodyIn.getName() );
         bodyIn.setId(bodyIn.getId()*10);
