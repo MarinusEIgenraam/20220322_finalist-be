@@ -14,7 +14,7 @@ public class ProjectOutput {
     public String createdAt;
     @Nullable
     public String modifiedAt;
-    public List<FileInfoOutput> fileInfos;
+    public FileInfoOutput fileInfo;
 
     public static ProjectOutput fromProject(Project project) {
         var dto = new ProjectOutput();
@@ -24,7 +24,7 @@ public class ProjectOutput {
         dto.owner = project.getOwner();
         dto.modifiedAt = project.getModifiedAt() != null ? project.getModifiedAt().toString() : null;
         dto.createdAt = project.getCreatedAt().toString();
-        dto.fileInfos = project.getFileInfos().stream().map(f -> FileInfoOutput.fromFileInfo(f)).collect(Collectors.toList());
+        dto.fileInfo = FileInfoOutput.fromFileInfo(project.getFileInfo());
 
         return dto;
     }

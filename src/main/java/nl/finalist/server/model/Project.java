@@ -33,7 +33,7 @@ public class Project {
     @Nullable
     private LocalDateTime modifiedAt;
 
-    @OneToMany(mappedBy = "project", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "project", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("projectFiles")
-    private List<FileInfo> fileInfos;
+    private FileInfo fileInfo;
 }

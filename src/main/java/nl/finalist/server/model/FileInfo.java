@@ -40,7 +40,7 @@ public class FileInfo {
     private LocalDateTime modifiedAt;
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @ManyToOne
+    @OneToOne
     @JsonBackReference("projectFiles")
     private Project project;
 
