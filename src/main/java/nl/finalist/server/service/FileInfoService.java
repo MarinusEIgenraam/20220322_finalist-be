@@ -7,12 +7,16 @@ import nl.finalist.server.model.Message;
 import nl.finalist.server.model.Project;
 import nl.finalist.server.repository.FileInfoRepository;
 import nl.finalist.server.repository.ProjectRepository;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,55 +47,91 @@ public class FileInfoService {
         if (optionalProject.isEmpty()) {
             throw new IllegalStateException("There is no project with id: " + id);
         } else {
-            List<FileInfo> fileInfos =  fileInfoRepository.findAllByProject(optionalProject.get());
+            List<FileInfo> fileInfos = fileInfoRepository.findAllByProject(optionalProject.get());
             return fileInfos.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
         }
     }
 
-    public List <FileInfoOutput> findAll() {
+    public List<FileInfoOutput> findAll() {
         List<FileInfo> files = (List<FileInfo>) fileInfoRepository.findAll();
         return files.stream().map(FileInfoOutput::fromFileInfo).collect(Collectors.toList());
     }
 
 
     public static void example(Message bodyIn) {
-        bodyIn.setName( "Hello, " + bodyIn.getName() );
-        bodyIn.setId(bodyIn.getId()*10);
+        bodyIn.setName("Hello, " + bodyIn.getName());
+        bodyIn.setId(bodyIn.getId() * 10);
     }
 
-    public void save(FileInfoInput fileInfoInput) {
-        FileInfo fileInfo = fileInfoInput.toFileInfo();
-        String name = new String("");
-        String parentName = new String("");
-        if (fileInfoInput.fileLocation.split("/").length >= 2) {
-            parentName = fileInfoInput.fileLocation.split("/")[fileInfoInput.fileLocation.split("/").length - 2];
-        }
-
-        if (fileInfoInput.fileLocation.equals("")) {
-            name = fileInfoInput.fileName;
-        } else {
-            name = fileInfoInput.fileLocation.split("/")[0];
-        }
-        Optional<Project> optionalProject = projectRepository.findByName(name);
-        Optional<FileInfo> optionalFileInfo = fileInfoRepository.findByFileName(parentName);
-
-        if (optionalProject.isPresent()) {
-            Project project = optionalProject.get();
-            fileInfo.setProject(optionalProject.get());
-            project.getFileInfos().add(fileInfo);
-            project.setModifiedAt(LocalDateTime.now());
-            projectRepository.save(project);
-        } else {
-            fileInfo.setProject(projectService.saveProject(name));
-        }
+    public FileInfo saveFile(String fileName) {
+        var optionalFileInfo = fileInfoRepository.findByFileName(fileName);
         if (optionalFileInfo.isPresent()) {
-            FileInfo parentInfo = optionalFileInfo.get();
-            fileInfo.setParentFolder(parentInfo);
-            FileInfo child = fileInfoRepository.save(fileInfo);
-            fileInfoRepository.save(fileInfo);
+            return optionalFileInfo.get();
         } else {
-            fileInfoRepository.save(fileInfo);
+            FileInfo fileInfo = FileInfo.builder()
+                    .fileName(fileName)
+                    .build();
+            return fileInfoRepository.save(fileInfo);
         }
+    }
+
+    // folder/folder/folder/folder/file.file
+    public void saveFileInfo(FileInfoInput fileInfoInput) {
+        FileInfo fileInfo = fileInfoInput.toFileInfo();
+        File file = new File(fileInfoInput.savedDirectory);
+        fileInfo.setFileSize(FileUtils.sizeOf(file));
+
+        String[] folderFileStructure = fileInfoInput.fileDirectory.split("/");
+        String[] folderStructure = Arrays.copyOf(folderFileStructure, folderFileStructure.length - 1);
+
+        // For every folder check if file info exists
+        for (int i = 0; i < folderStructure.length; i++) {
+            FileInfo savedFileInfo = saveFile(folderStructure[i]);
+
+            if (i == 0) {
+                var optionalProject = projectRepository.findByName(folderStructure[0]);
+                if (optionalProject.isPresent()) {
+                    var optionalFileInfo = fileInfoRepository.findByFileName(folderStructure[0]);
+                    if (optionalFileInfo.isPresent() && optionalFileInfo.get().getProject() == null) {
+                        FileInfo newFileInfo = optionalFileInfo.get();
+                        newFileInfo.setProject(optionalProject.get());
+                        fileInfoRepository.save(newFileInfo);
+                    }
+                } else {
+                    Project newProject = projectService.saveProject(folderStructure[0]);
+                    savedFileInfo.setProject(newProject);
+                    fileInfoRepository.save(savedFileInfo);
+                }
+            }
+
+            if (i > 0) {
+                var optionalParent = fileInfoRepository.findByFileName(folderFileStructure[i - 1]);
+                if (optionalParent.isPresent()) {
+                    optionalParent.get().getFileList().add(savedFileInfo);
+                }
+            }
+        }
+
+        // Set filetype
+        if (fileInfoInput.fileName.contains(".")) {
+            fileInfo.setFileType(getExtensionByApacheCommonLib(fileInfoInput.fileName));
+        } else {
+            fileInfo.setFileType("folder");
+        }
+
+
+        if (folderStructure.length >= 1) {
+            var optionalParent = fileInfoRepository.findByFileName(folderStructure[folderStructure.length - 1]);
+            if (optionalParent.isPresent()) {
+                fileInfo.setParentFolder(optionalParent.get());
+            }
+        }
+        fileInfo.setCreatedAt(LocalDateTime.now());
+        fileInfoRepository.save(fileInfo);
+    }
+
+    public String getExtensionByApacheCommonLib(String filename) {
+        return FilenameUtils.getExtension(filename);
     }
 }
 

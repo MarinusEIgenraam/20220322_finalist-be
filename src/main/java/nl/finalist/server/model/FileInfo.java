@@ -25,14 +25,20 @@ public class FileInfo {
     private Long id;
 
     private String fileName;
-
-    private String fileLocation;
-
+    @Nullable
+    private String fileDirectory;
+    @Nullable
+    private String fileType;
+    @Nullable
+    private long fileSize;
+    @Nullable
+    private String savedDirectory;
+    @Nullable
     private String lastEvent;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
     @Nullable
     private LocalDateTime modifiedAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     @ManyToOne
     @JsonBackReference("projectFiles")
@@ -44,7 +50,7 @@ public class FileInfo {
     private FileInfo parentFolder;
 
     @Nullable
-    @OneToMany(mappedBy = "parentFolder", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "parentFolder", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JsonManagedReference("folderFiles")
     private List<FileInfo> fileList;
 }

@@ -9,16 +9,22 @@ import java.time.LocalDateTime;
 public class FileInfoInput {
     public Long id;
     public String fileName;
-    public String fileLocation;
+    public String fileDirectory;
+    public String savedDirectory;
+
+    public long fileSize;
+    public String fileType;
+
     public String lastEvent;
     public String projectName;
-    public String parentFolder;
 
     public FileInfo toFileInfo() {
         var fileInfo = new FileInfo();
 
         fileInfo.setFileName(fileName);
-        fileInfo.setFileLocation(fileLocation);
+        fileInfo.setFileSize(fileSize);
+        fileInfo.setFileDirectory(fileDirectory);
+        fileInfo.setSavedDirectory(savedDirectory);
         fileInfo.setLastEvent(lastEvent);
         fileInfo.setModifiedAt(LocalDateTime.now());
 
