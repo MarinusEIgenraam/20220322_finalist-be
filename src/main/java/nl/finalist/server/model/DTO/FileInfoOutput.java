@@ -9,7 +9,7 @@ import java.util.stream.Collectors;
 
 public class FileInfoOutput {
     public Long id;
-    public String fileName;
+    public String name;
     public String fileDirectory;
     public String fileType;
     public long fileSize;
@@ -24,13 +24,15 @@ public class FileInfoOutput {
     @Nullable
     public String createdAt;
     @Nullable
-    public List<FileInfoOutput> fileList;
+    public List<FileInfoOutput> children;
+    @Nullable
+    public Long parentId;
 
     public static FileInfoOutput fromFileInfo(FileInfo fileInfo) {
         var dto = new FileInfoOutput();
 
         dto.id = fileInfo.getId();
-        dto.fileName = fileInfo.getFileName();
+        dto.name = fileInfo.getFileName();
         dto.fileDirectory = fileInfo.getFileDirectory();
         dto.savedDirectory = fileInfo.getSavedDirectory();
         dto.lastEvent = fileInfo.getLastEvent();
@@ -41,7 +43,8 @@ public class FileInfoOutput {
         dto.createdAt = fileInfo.getCreatedAt() != null ? fileInfo.getCreatedAt().toString() : null;
         dto.modifiedAt = fileInfo.getModifiedAt() != null ? fileInfo.getModifiedAt().toString() : null;
 
-        dto.fileList = fileInfo.getFileList().stream().map(f->FileInfoOutput.fromFileInfo(f)).collect(Collectors.toList());
+        dto.children = fileInfo.getFileList().stream().map(f->FileInfoOutput.fromFileInfo(f)).collect(Collectors.toList());
+        dto.parentId = fileInfo.getParentFolder() != null ? fileInfo.getParentFolder().getId() : null;
 
         return dto;
     }

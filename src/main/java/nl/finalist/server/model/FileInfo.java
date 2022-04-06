@@ -24,6 +24,7 @@ public class FileInfo {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Nullable
     private String fileName;
     @Nullable
     private String fileDirectory;

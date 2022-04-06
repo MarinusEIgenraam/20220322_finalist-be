@@ -36,7 +36,6 @@ public class FileRoutes extends RouteBuilder {
                                 .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
                                 .fileDirectory((String) exchange.getIn().getHeader("CamelFileRelativePath"))
                                 .savedDirectory((String) exchange.getIn().getHeader("CamelFileAbsolutePath"))
-                                .fileSize(10)
                                 .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
                                 .build();
 
@@ -47,6 +46,50 @@ public class FileRoutes extends RouteBuilder {
                     }
                 })
                 .log("File id: ${exchange.getIn().getBody().getId()}");
+        from("file-watch:" + path + "?events=MODIFY")
+                .routeId("update-fileInfo")
+                .log("File event: ${header.CamelFileEventType} occurred on file ${header.CamelFileName} at ${header.CamelFileLastModified}")
+                .setHeader(Exchange.FILE_NAME, simple("${header.CamelFileName}.${header.CamelFileLastModified}"))
+                .to("file:" + library)
+                .process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
 
+                        FileInfoInput fileInfoInput = FileInfoInput.builder()
+                                .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
+                                .fileDirectory((String) exchange.getIn().getHeader("CamelFileRelativePath"))
+                                .savedDirectory((String) exchange.getIn().getHeader("CamelFileAbsolutePath"))
+                                .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
+                                .build();
+
+                        fileInfoService.updateFile(fileInfoInput);
+
+                        exchange.getIn()
+                                .setBody(fileInfoInput.toFileInfo());
+                    }
+                })
+                .log("File id: ${exchange.getIn().getBody().getId()}");
+        from("file-watch:" + path + "?events=DELETE")
+                .routeId("delete-fileInfo")
+                .log("File event: ${header.CamelFileEventType} occurred on file ${header.CamelFileName} at ${header.CamelFileLastModified}")
+                .setHeader(Exchange.FILE_NAME, simple("${header.CamelFileName}.${header.CamelFileLastModified}"))
+                .process(new Processor() {
+                    @Override
+                    public void process(Exchange exchange) throws Exception {
+
+                        FileInfoInput fileInfoInput = FileInfoInput.builder()
+                                .fileName((String) exchange.getIn().getHeader("CamelFileNameOnly"))
+                                .fileDirectory((String) exchange.getIn().getHeader("CamelFileRelativePath"))
+                                .savedDirectory((String) exchange.getIn().getHeader("CamelFileAbsolutePath"))
+                                .lastEvent((String) exchange.getIn().getHeader("CamelFileEventType"))
+                                .build();
+
+                        fileInfoService.deleteFile(fileInfoInput);
+
+                        exchange.getIn()
+                                .setBody(fileInfoInput.toFileInfo());
+                    }
+                })
+                .log("File id: ${exchange.getIn().getBody().getId()}");
     }
 }

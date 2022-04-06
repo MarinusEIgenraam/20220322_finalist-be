@@ -1,5 +1,6 @@
 package nl.finalist.server.service;
 
+import nl.finalist.server.exception.RecordNotFoundException;
 import nl.finalist.server.model.DTO.FileInfoInput;
 import nl.finalist.server.model.DTO.FileInfoOutput;
 import nl.finalist.server.model.FileInfo;
@@ -9,6 +10,7 @@ import nl.finalist.server.repository.FileInfoRepository;
 import nl.finalist.server.repository.ProjectRepository;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,76 +60,125 @@ public class FileInfoService {
     }
 
 
-    public static void example(Message bodyIn) {
-        bodyIn.setName("Hello, " + bodyIn.getName());
-        bodyIn.setId(bodyIn.getId() * 10);
-    }
-
-    public FileInfo saveFile(String fileName) {
-        var optionalFileInfo = fileInfoRepository.findByFileName(fileName);
-        if (optionalFileInfo.isPresent()) {
-            return optionalFileInfo.get();
+    public void updateFile(FileInfoInput fileInfoInput) {
+        FileInfo fileInfo = fileInfoInput.toFileInfo();
+        var optionalInfoToUpdate = fileInfoRepository.findByFileDirectory(fileInfoInput.fileDirectory);
+        if (optionalInfoToUpdate.isPresent()) {
+            FileInfo fileInfoToUpdate = optionalInfoToUpdate.get();
+            fileInfoToUpdate.setLastEvent(fileInfoInput.lastEvent);
+            fileInfoToUpdate.setModifiedAt(LocalDateTime.now());
+            fileInfoRepository.save(fileInfoToUpdate);
+            projectService.updateProject(fileInfoToUpdate.getFileDirectory().split("/")[0]);
         } else {
-            FileInfo fileInfo = FileInfo.builder()
-                    .fileName(fileName)
-                    .build();
-            return fileInfoRepository.save(fileInfo);
+            throw new RecordNotFoundException("You can not update this file since it does not exist");
         }
     }
 
-    // folder/folder/folder/folder/file.file
+    public void deleteFile(FileInfoInput fileInfoInput) {
+        var fileInfoToDelete = fileInfoRepository.findByFileDirectory(fileInfoInput.fileDirectory);
+        if (fileInfoToDelete.isPresent()) {
+            fileInfoRepository.delete(fileInfoToDelete.get());
+
+            projectService.deleteProjectByFile(fileInfoToDelete.get().getFileDirectory().split("/")[0]);
+
+        } else {
+            throw new RecordNotFoundException("this fileInfo does not exist");
+        }
+    }
+
     public void saveFileInfo(FileInfoInput fileInfoInput) {
-        FileInfo fileInfo = fileInfoInput.toFileInfo();
+        FileInfo fileInfo;
+        if (fileInfoRepository.findByFileDirectory(fileInfoInput.fileDirectory).isPresent()) {
+            fileInfo = fileInfoRepository.findByFileDirectory(fileInfoInput.fileDirectory).get();
+        } else {
+            fileInfo = fileInfoInput.toFileInfo();
+        }
+
+
         File file = new File(fileInfoInput.savedDirectory);
         fileInfo.setFileSize(FileUtils.sizeOf(file));
 
-        String[] folderFileStructure = fileInfoInput.fileDirectory.split("/");
-        String[] folderStructure = Arrays.copyOf(folderFileStructure, folderFileStructure.length - 1);
+        // Folder
+        // Folder/Folder/Folder/File.js
+        String separator = "/";
+        String[] folderFileStructure = fileInfoInput.fileDirectory.split(separator);
+        // [Folder] 1
+        // ["Folder","Folder","Folder","File.js"] 4
 
-        // For every folder check if file info exists
-        for (int i = 0; i < folderStructure.length; i++) {
-            FileInfo savedFileInfo = saveFile(folderStructure[i]);
+        for (int i = 0; i < folderFileStructure.length; i++) {
+            String[] arrayToSave = Arrays.copyOf(folderFileStructure, i + 1);
+            String dirToSave = StringUtils.join(arrayToSave, separator);
+            FileInfo savedFileInfo;
+
+            if (!fileInfoRepository.findByFileDirectory(dirToSave).isPresent()) {
+                savedFileInfo = saveFolder(dirToSave);
+            } else {
+                savedFileInfo = fileInfoRepository.findByFileDirectory(dirToSave).get();
+            }
+
+            String[] parentArray = Arrays.copyOf(arrayToSave, arrayToSave.length - 1);
+            String parentString = StringUtils.join(parentArray, separator);
 
             if (i == 0) {
-                var optionalProject = projectRepository.findByName(folderStructure[0]);
+                var optionalProject = projectRepository.findByName(folderFileStructure[0]);
                 if (optionalProject.isPresent()) {
-                    var optionalFileInfo = fileInfoRepository.findByFileName(folderStructure[0]);
-                    if (optionalFileInfo.isPresent() && optionalFileInfo.get().getProject() == null) {
-                        FileInfo newFileInfo = optionalFileInfo.get();
-                        newFileInfo.setProject(optionalProject.get());
-                        fileInfoRepository.save(newFileInfo);
-                    }
+                    savedFileInfo.setProject(optionalProject.get());
                 } else {
-                    Project newProject = projectService.saveProject(folderStructure[0]);
+                    Project newProject = projectService.saveProject(folderFileStructure[0]);
                     savedFileInfo.setProject(newProject);
-                    fileInfoRepository.save(savedFileInfo);
                 }
             }
 
             if (i > 0) {
-                var optionalParent = fileInfoRepository.findByFileName(folderFileStructure[i - 1]);
+                var optionalParent = fileInfoRepository.findByFileDirectory(parentString);
                 if (optionalParent.isPresent()) {
-                    optionalParent.get().getFileList().add(savedFileInfo);
+                    savedFileInfo.setParentFolder(optionalParent.get());
                 }
             }
+            fileInfoRepository.save(savedFileInfo);
         }
 
-        // Set filetype
         if (fileInfoInput.fileName.contains(".")) {
             fileInfo.setFileType(getExtensionByApacheCommonLib(fileInfoInput.fileName));
         } else {
             fileInfo.setFileType("folder");
         }
 
+        String[] parentArray = Arrays.copyOf(folderFileStructure, folderFileStructure.length - 1);
+        String parentString = StringUtils.join(parentArray, separator);
 
-        if (folderStructure.length >= 1) {
-            var optionalParent = fileInfoRepository.findByFileName(folderStructure[folderStructure.length - 1]);
-            if (optionalParent.isPresent()) {
-                fileInfo.setParentFolder(optionalParent.get());
-            }
+        var optionalParent = fileInfoRepository.findByFileDirectory(parentString);
+        if (optionalParent.isPresent()) {
+            fileInfo.setParentFolder(optionalParent.get());
         }
-        fileInfo.setCreatedAt(LocalDateTime.now());
-        fileInfoRepository.save(fileInfo);
+
+        var optionalFileInfo = fileInfoRepository.findByFileDirectory(fileInfo.getFileDirectory());
+
+        if (optionalFileInfo.isPresent()) {
+            fileInfo.setId(optionalFileInfo.get().getId());
+            fileInfo.setCreatedAt(optionalFileInfo.get().getCreatedAt());
+            fileInfoRepository.save(fileInfo);
+        } else {
+            fileInfo.setCreatedAt(LocalDateTime.now());
+            fileInfoRepository.save(fileInfo);
+        }
+    }
+
+    public static void example(Message bodyIn) {
+        bodyIn.setName("Hello, " + bodyIn.getName());
+        bodyIn.setId(bodyIn.getId() * 10);
+    }
+
+    public FileInfo saveFolder(String folderDirectory) {
+        var optionalFileInfo = fileInfoRepository.findByFileDirectory(folderDirectory);
+        if (optionalFileInfo.isPresent()) {
+            return optionalFileInfo.get();
+        } else {
+            FileInfo fileInfo = FileInfo.builder()
+                    .fileDirectory(folderDirectory)
+                    .build();
+            return fileInfoRepository.save(fileInfo);
+        }
     }
 
     public String getExtensionByApacheCommonLib(String filename) {

@@ -42,7 +42,7 @@ class RestApi extends RouteBuilder {
                 .dataFormatProperty("prettyPrint", "true");
 
         rest("/api/").description("Test REST Service")
-                .id("api-route")
+                .id("test-one")
                 .post("/message")
                 .produces(MediaType.APPLICATION_JSON)
                 .consumes(MediaType.APPLICATION_JSON)
@@ -52,17 +52,27 @@ class RestApi extends RouteBuilder {
                 .to("direct:remoteService");
 
         rest("/api/").description("Project REST Service")
-                .id("api-route")
+                .id("projects-getAll")
+                .get("/projects")
+                .to("bean:projectService?method=getProjects()");
+
+        rest("/api/").description("Project REST Service")
+                .id("projects-getOne")
                 .get("/projects/{id}")
                 .to("bean:projectService?method=getProject(${header.id})");
 
+        rest("/api/").description("Project REST Service")
+                .id("projects-deleteOne")
+                .delete("/projects/{id}")
+                .to("bean:projectService?method=deleteProject(${header.id})");
+
         rest("/api/").description("Files REST Service")
-                .id("get-files")
+                .id("files-getAll")
                 .get("/files").outType(Iterable.class)
                 .to("bean:fileInfoService?method=findAll");
 
         rest("/api/").description("Files REST Service")
-                .id("api-route")
+                .id("files-getOne")
                 .get("/files/{id}")
                 .to("bean:fileInfoService?method=findById(${header.id})");
 
